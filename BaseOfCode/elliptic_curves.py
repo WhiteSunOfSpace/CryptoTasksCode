@@ -30,6 +30,29 @@ def multy(base, n, p):  #base - point, n - times of multiplying, p - modulo
             Q = addtition(Q, Q, p)
             n = n//2
     return R
+
+def add_mont(P, Q):
+    x1, y1 = P
+    x2, y2 = Q
+    m = (y2-y1)*inverse(x2-x1, p) % p
+    x3 = ((B*m*m)-A-x1-x2) % p
+    y3 = (m*(x1-x3)-y1) % p
+    return x3, y3
+
+def doub_mont(P):
+    x, y = P
+    m = (((3*x*x) + (2*A*x) + 1)*inverse(2*B*y, p)) % p
+    x3 = (B*m*m-A-2*x) % p
+    y3 = (m*(x-x3)-y) % p
+    return x3, y3
+
+def mult_mont(P, k):
+    R0, R1 = P, doub_mont(P)
+    n = k.bit_length()
+    for i in range(n-2, -1, -1):
+        b = k & (1 << i)
+        R0, R1 = (add_mont(R0, R1), doub_mont(R1)) if b != 0 else (doub_mont(R0), add_mont(R0, R1))
+    return R0
   
 def is_pkcs7_padded(message):
     padding = message[-message[-1]:]
